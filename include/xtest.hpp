@@ -13,32 +13,45 @@ namespace xtest
 
 	{
 		HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-		SetConsoleTextAttribute(hStdout, FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+		SetConsoleTextAttribute(hStdout,
+			FOREGROUND_BLUE | 
+			FOREGROUND_GREEN | 
+			FOREGROUND_INTENSITY);
 		return s;
 	}
 	static inline std::ostream& RED(std::ostream &s)
 	{
 		HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-		SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_INTENSITY);
+		SetConsoleTextAttribute(hStdout, 
+			FOREGROUND_RED | 
+			FOREGROUND_INTENSITY);
 		return s;
 
 	}
 	static inline std::ostream& GREEN(std::ostream &s)
 	{
 		HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-		SetConsoleTextAttribute(hStdout, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+		SetConsoleTextAttribute(hStdout, 
+			FOREGROUND_GREEN | 
+			FOREGROUND_INTENSITY);
 		return s;
 	}
 	static inline std::ostream& YELLOW(std::ostream &s)
 	{
 		HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-		SetConsoleTextAttribute(hStdout, FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY);
+		SetConsoleTextAttribute(hStdout, 
+			FOREGROUND_GREEN | 
+			FOREGROUND_RED | 
+			FOREGROUND_INTENSITY);
 		return s;
 	}
 	inline std::ostream& WHITE(std::ostream &s)
 	{
 		HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-		SetConsoleTextAttribute(hStdout,FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+		SetConsoleTextAttribute(hStdout,
+			FOREGROUND_RED | 
+			FOREGROUND_GREEN | 
+			FOREGROUND_BLUE);
 		return s;
 	}
 	struct color 
@@ -54,7 +67,7 @@ namespace xtest
 		SetConsoleTextAttribute(hStdout, c.m_color);
 		return i;
 	}
-#elif
+#else
 #define RESET   "\033[0m"
 #define BLACK   "\033[30m"      /* Black */
 #define RED     "\033[31m"      /* Red */
@@ -77,7 +90,10 @@ namespace xtest
 	class xtest_excetion
 	{
 	public:
-		xtest_excetion(const char *file,int line, const char *errstr)
+		xtest_excetion(
+			const char *file,
+			int line, 
+			const char *errstr)
 		{
 			error_str_ += "FILE: ";
 			error_str_ += file;
@@ -98,13 +114,20 @@ namespace xtest
 	class xtest
 	{
 	public:
-		typedef std::tuple<std::string, std::string, std::function<void(void)>> test_t;
+		typedef std::tuple<
+			std::string, 
+			std::string, 
+			std::function<void(void)>
+		> test_t;
 		static xtest &get_inst()
 		{
 			static xtest inst;
 			return inst;
 		}
-		xtest &add_test(const std::string &suite, const std::string &name,std::function<void()> test)
+		xtest &add_test(
+			const std::string &suite,
+			const std::string &name,
+			std::function<void()> test)
 		{
 			tests_.emplace_back(suite, name, test);
 			return *this;
@@ -117,36 +140,50 @@ namespace xtest
 				if (suite != std::get<0>(itr))
 				{
 					if (suite.size())
-						std::cout << "- - - - - - - - - - - - -"<< std::endl;
-					std::cout << "suite: " << YELLOW <<
-						std::get<0>(itr).c_str() << WHITE << std::endl;
+						std::cout << 
+						"- - - - - - -"
+						" - - - - - -"<< std::endl;
+					std::cout << "suite: "
+						<< YELLOW 
+						<<std::get<0>(itr).c_str() 
+						<<WHITE 
+						<< std::endl;
 				}
 					
 				suite = std::get<0>(itr);
-				std::cout << "     |→ " << YELLOW <<std::get<1>(itr).c_str()<<WHITE;
+				std::cout << "     |→ " 
+					<< YELLOW 
+					<<std::get<1>(itr).c_str()
+					<<WHITE;
 				try
 				{
 					std::get<2>(itr)();
-					std::cout << GREEN<<" √" << WHITE <<std::endl;
+					std::cout << GREEN
+						<<" √" 
+						<< WHITE 
+						<<std::endl;
 				}
 				catch (xtest_excetion &e)
 				{
-					std::cout << RED <<" ㄨ "<< e.str() << WHITE << std::endl;
+					std::cout << RED 
+						<<" ㄨ "
+						<< e.str() 
+						<< WHITE 
+						<< std::endl;
 					continue;
 				}
 			}
 		}
 	private:
-		void SetColor(unsigned short forecolor = 4, unsigned short backgroudcolor = 0)
-		{
-			HANDLE hCon = GetStdHandle(STD_OUTPUT_HANDLE); //获取缓冲区句柄
-			SetConsoleTextAttribute(hCon, forecolor | backgroudcolor); //设置文本及背景色
-		}
 		std::list<test_t> tests_;
 	};
 }
 
-#define XTEST_SUITE(name) namespace name##_suite{ static const char *__suite_name  = #name; } namespace name##_suite
+#define XTEST_SUITE(name) \
+namespace name##_suite\
+{ \
+	static const char *__suite_name  = #name; \
+} namespace name##_suite
 
 #define XUNIT_TEST(name) \
 static inline void do_##name##_unit_test();\
@@ -155,12 +192,22 @@ class unit_test_##name\
 public:\
 	unit_test_##name()\
 	{\
-		xtest::xtest::get_inst().add_test(__suite_name, #name, [&] { do_##name##_unit_test();});\
+		xtest::xtest::get_inst().add_test(\
+			__suite_name, \
+			#name, \
+			[&] { \
+				do_##name##_unit_test();\
+			});\
 	}\
 }_unit_test_##name;\
  void  do_##name##_unit_test()
 
-#define  xassert(x) if (!(x)) throw xtest::xtest_excetion(__FILE__, __LINE__, "xassert( "#x" ) failed !");
+#define  xassert(x) \
+if (!(x)) \
+throw xtest::xtest_excetion(\
+__FILE__, \
+__LINE__, \
+"xassert( "#x" ) failed !");
 
 #define xtest_run \
 int main()\
